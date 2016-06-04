@@ -337,21 +337,21 @@ p_{c1}+R\left(\theta_{1}\right)p_{1}=p_{c2}+R\left(\theta_{2}\right)p_{2}
 \end_layout
 
 \begin_layout Subsubsection*
-Slot Constraint
+Rolling Constraint (Simple hozinontal roll)
 \end_layout
 
 \begin_layout Standard
-A point on the body must be on this parametric line.
-\end_layout
-
-\begin_layout Standard
-Normal of line:
+This is a very simple roll.
+ Only horizontal, rolls around the center of the body.
+ This roll is between the a rb and the world, not two rbs.
+ I may make a more complex roll later.
+ 
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\hat{n}=
+y=\dot{y}=\ddot{y}=0
 \]
 
 \end_inset
@@ -359,14 +359,63 @@ Normal of line:
 
 \end_layout
 
-\begin_layout Subsubsection*
-Rolling Constraint
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+x & =R\theta\\
+\dot{x} & =R\dot{\theta}\\
+\ddot{x} & =R\ddot{\theta}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $R$
+\end_inset
+
+ is the radius of the wheel.
+\end_layout
+
+\begin_layout Standard
+Two reaction forces are added, the normal force 
+\begin_inset Formula $R_{N}$
+\end_inset
+
+ and the friction force 
+\begin_inset Formula $R_{F}$
+\end_inset
+
+.
+ An infinate friction coefficient is assumed for now.
+\end_layout
+
+\begin_layout Standard
+The combined effect is:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-v_{x}^{2}+y_{y}^{2}
+\begin{pmatrix}m_{1} & 0 & 0 & 1 & 0\\
+0 & m_{1} & 0 & 0 & 1\\
+0 & 0 & I_{1} & -R & 0\\
+1 & 0 & -R & 0 & 0\\
+0 & 1 & 0 & 0 & 0
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}\\
+R_{F}\\
+R_{N}
+\end{pmatrix}=\begin{pmatrix}0\\
+0\\
+0\\
+0\\
+0
+\end{pmatrix}
 \]
 
 \end_inset
