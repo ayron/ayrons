@@ -1,0 +1,553 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass empyria_short
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement H
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Inverted Pendulum Model
+\end_layout
+
+\begin_layout PreparedBy
+Ayron Catteau
+\end_layout
+
+\begin_layout Section*
+AYRONS
+\end_layout
+
+\begin_layout Standard
+A linear system of equations is programatically constructed given rigid
+ body and contraint definitions.
+\end_layout
+
+\begin_layout Subsection*
+Rigid Body
+\end_layout
+
+\begin_layout Standard
+The addition of a rigid body add three new rows and columns to the system:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}m_{1} & 0 & 0\\
+0 & m_{1} & 0\\
+0 & 0 & I_{1}
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}
+\end{pmatrix}=\begin{pmatrix}0\\
+-gm_{1}\\
+0
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Constraints
+\end_layout
+
+\begin_layout Subsubsection*
+Fixed
+\end_layout
+
+\begin_layout Standard
+'Cannot move' adds three new equations from kinematic equations:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}1 & 0 & 0\\
+0 & 1 & 0\\
+0 & 0 & 1
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}
+\end{pmatrix}=\begin{pmatrix}0\\
+0\\
+0
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+and adds three reaction forces/torques:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}m_{1} & 0 & 0 & 1 & 0 & 0\\
+0 & m_{1} & 0 & 0 & 1 & 0\\
+0 & 0 & I_{1} & 0 & 0 & 1
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}\\
+R_{x}\\
+R_{y}\\
+R_{\theta}
+\end{pmatrix}=\begin{pmatrix}0\\
+-gm_{1}\\
+0
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus the combined effect is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}m_{1} & 0 & 0 & 1 & 0 & 0\\
+0 & m_{1} & 0 & 0 & 1 & 0\\
+0 & 0 & I_{1} & 0 & 0 & 1\\
+1 & 0 & 0 & 0 & 0 & 0\\
+0 & 1 & 0 & 0 & 0 & 0\\
+0 & 0 & 1 & 0 & 0 & 0
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}\\
+R_{x}\\
+R_{y}\\
+R_{\theta}
+\end{pmatrix}=\begin{pmatrix}0\\
+-gm_{1}\\
+0\\
+0\\
+0\\
+0
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Pin Joint
+\end_layout
+
+\begin_layout Standard
+Adds two new equations using existing columns from the kinematic constraints:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+R\left(\theta\right) & =\begin{pmatrix}\cos\theta & -\sin\theta\\
+\sin\theta & \cos\theta
+\end{pmatrix}\\
+\dot{R}\left(\theta\right) & =\dot{\theta}\begin{pmatrix}-\sin\theta & -\cos\theta\\
+\cos\theta & -\sin\theta
+\end{pmatrix}\\
+\ddot{R}\left(\theta\right) & =\ddot{\theta}\begin{pmatrix}-\sin\theta & -\cos\theta\\
+\cos\theta & -\sin\theta
+\end{pmatrix}+\dot{\theta}^{2}\begin{pmatrix}-\cos\theta & \sin\theta\\
+-\sin\theta & -\cos\theta
+\end{pmatrix}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+p_{c1}+R\left(\theta_{1}\right)p_{1} & =p_{c2}+R\left(\theta_{2}\right)p_{2}\\
+v_{1}+\dot{R}\left(\theta_{1}\right)p_{1} & =v_{2}+\dot{R}\left(\theta_{2}\right)p_{2}\\
+a_{1}+\ddot{R}\left(\theta_{1}\right)p_{1} & =a_{2}+\ddot{R}\left(\theta_{2}\right)p_{2}\\
+a_{1}+\ddot{\theta}_{1}\begin{pmatrix}-\sin\theta_{1} & -\cos\theta_{1}\\
+\cos\theta_{1} & -\sin\theta_{1}
+\end{pmatrix}p_{1}+\dot{\theta}_{1}^{2}\begin{pmatrix}-\cos\theta_{1} & \sin\theta_{1}\\
+-\sin\theta_{1} & -\cos\theta_{1}
+\end{pmatrix}p_{1} & =a_{2}+\ddot{\theta}_{2}\begin{pmatrix}-\sin\theta_{2} & -\cos\theta_{2}\\
+\cos\theta_{2} & -\sin\theta_{2}
+\end{pmatrix}p_{2}+\dot{\theta}_{2}^{2}\begin{pmatrix}-\cos\theta_{2} & \sin\theta_{2}\\
+-\sin\theta_{2} & -\cos\theta_{2}
+\end{pmatrix}p_{1}\\
+a_{1}+\ddot{\theta}_{1}\begin{pmatrix}-\sin\theta_{1} & -\cos\theta_{1}\\
+\cos\theta_{1} & -\sin\theta_{1}
+\end{pmatrix}p_{1}-a_{2}-\ddot{\theta}_{2}\begin{pmatrix}-\sin\theta_{2} & -\cos\theta_{2}\\
+\cos\theta_{2} & -\sin\theta_{2}
+\end{pmatrix}p_{2} & =\dot{\theta}_{2}^{2}\begin{pmatrix}-\cos\theta_{2} & \sin\theta_{2}\\
+-\sin\theta_{2} & -\cos\theta_{2}
+\end{pmatrix}p_{1}-\dot{\theta}_{1}^{2}\begin{pmatrix}-\cos\theta_{1} & \sin\theta_{1}\\
+-\sin\theta_{1} & -\cos\theta_{1}
+\end{pmatrix}p_{1}\\
+\begin{pmatrix}1 & 0 & -p_{1x}\sin\theta_{1}-p_{1y}\cos\theta_{1} & -1 & 0 & p_{2x}\sin\theta_{2}+p_{2y}\cos\theta_{2}\\
+0 & 1 & p_{1x}\cos\theta_{1}-p_{1y}\sin\theta_{1} & 0 & -1 & -p_{2x}\cos\theta_{2}+p_{2y}\sin\theta_{2}
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+\ddot{\theta}_{1}\\
+a_{2x}\\
+a_{2y}\\
+\ddot{\theta}_{2}
+\end{pmatrix} & =\begin{pmatrix}\dot{\theta}_{2}^{2}\left(-p_{2x}\cos\theta_{2}+p_{2y}\sin\theta_{2}\right)-\dot{\theta}_{1}^{2}\left(-p_{1x}\cos\theta_{1}+p_{1y}\sin\theta_{1}\right)\\
+\dot{\theta}_{2}^{2}\left(-p_{2x}\sin\theta_{2}-p_{2y}\cos\theta_{2}\right)-\dot{\theta}_{1}^{2}\left(-p_{1x}\sin\theta_{1}-p_{1y}\cos\theta_{1}\right)
+\end{pmatrix}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $p$
+\end_inset
+
+ is the location of the pin in body frame.
+\end_layout
+
+\begin_layout Standard
+The pin joint also add two new columns for the internal forces:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}m_{1} & 0 & 0 &  &  &  & 1\\
+0 & m_{1} & 0 &  &  &  &  & 1\\
+0 & 0 & I_{1} &  &  &  & -p_{1x}\sin\theta_{1}-p_{1y}\cos\theta_{1} & p_{1x}\cos\theta_{1}-p_{1y}\sin\theta_{1}\\
+ &  &  & m_{2} & 0 & 0 & -1\\
+ &  &  & 0 & m_{2} & 0 &  & -1\\
+ &  &  & 0 & 0 & I_{2} & p_{2x}\sin\theta_{2}+p_{2y}\cos\theta_{2} & -p_{2x}\cos\theta_{2}+p_{2y}\sin\theta_{2}
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}\\
+a_{2x}\\
+a_{2y}\\
+a_{2h}\\
+F_{x}\\
+F_{y}
+\end{pmatrix}=\begin{pmatrix}0\\
+-gm_{1}\\
+0\\
+0\\
+-gm_{2}\\
+0
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The static kinematics (finding initial conditions):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+p_{c1}+R\left(\theta_{1}\right)p_{1}=p_{c2}+R\left(\theta_{2}\right)p_{2}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Slot Constraint
+\end_layout
+
+\begin_layout Standard
+A point on the body must be on this parametric line.
+\end_layout
+
+\begin_layout Standard
+Normal of line:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\hat{n}=
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Rolling Constraint
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+v_{x}^{2}+y_{y}^{2}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+System Construction
+\end_layout
+
+\begin_layout Standard
+Consider a simple pendulum consisting of two rigid bodies, one fixed in
+ place and the other connected to the first with a pin joint.
+\end_layout
+
+\begin_layout Standard
+Starting with an empty system:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}0\end{pmatrix}\begin{pmatrix}0\end{pmatrix}=\begin{pmatrix}0\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Add the first rigid body
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}m_{1} & 0 & 0\\
+0 & m_{1} & 0\\
+0 & 0 & I_{1}
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}
+\end{pmatrix}=\begin{pmatrix}0\\
+-gm_{1}\\
+0
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Add the second rigid body
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}m_{1} & 0 & 0\\
+0 & m_{1} & 0\\
+0 & 0 & I_{1}\\
+ &  &  & m_{2} & 0 & 0\\
+ &  &  & 0 & m_{2} & 0\\
+ &  &  & 0 & 0 & I_{2}
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}\\
+a_{2x}\\
+a_{2y}\\
+a_{2h}
+\end{pmatrix}=\begin{pmatrix}0\\
+-gm_{1}\\
+0\\
+0\\
+-gm_{2}\\
+0
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Fix the first rigid body in place:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}m_{1} & 0 & 0 &  &  &  & 1 & 0 & 0\\
+0 & m_{1} & 0 &  &  &  & 0 & 1 & 0\\
+0 & 0 & I_{1} &  &  &  & 0 & 0 & 1\\
+ &  &  & m_{2} & 0 & 0\\
+ &  &  & 0 & m_{2} & 0\\
+ &  &  & 0 & 0 & I_{2}\\
+1 & 0 & 0\\
+0 & 1 & 0\\
+0 & 0 & 1
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}\\
+a_{2x}\\
+a_{2y}\\
+a_{2h}\\
+R_{x}\\
+R_{y}\\
+R_{\theta}
+\end{pmatrix}=\begin{pmatrix}0\\
+-gm_{1}\\
+0\\
+0\\
+-gm_{2}\\
+0\\
+0\\
+0\\
+0
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Connect the second rigid body to the first with a pin joint:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}m_{1} & 0 & 0 &  &  &  & 1 & 0 & 0 & 1\\
+0 & m_{1} & 0 &  &  &  & 0 & 1 & 0 &  & 1\\
+0 & 0 & I_{1} &  &  &  & 0 & 0 & 1 & -p_{1x}\sin\theta_{1}-p_{1y}\cos\theta_{1} & p_{1x}\cos\theta_{1}-p_{1y}\sin\theta_{1}\\
+ &  &  & m_{2} & 0 & 0 &  &  &  & -1\\
+ &  &  & 0 & m_{2} & 0 &  &  &  &  & -1\\
+ &  &  & 0 & 0 & I_{2} &  &  &  & p_{2x}\sin\theta_{2}+p_{2y}\cos\theta_{2} & -p_{2x}\cos\theta_{2}+p_{2y}\sin\theta_{2}\\
+1 & 0 & 0\\
+0 & 1 & 0\\
+0 & 0 & 1\\
+1 & 0 & -p_{1x}\sin\theta_{1}-p_{1y}\cos\theta_{1} & -1 & 0 & p_{2x}\sin\theta_{2}+p_{2y}\cos\theta_{2}\\
+0 & 1 & p_{1x}\cos\theta_{1}-p_{1y}\sin\theta_{1} & 0 & -1 & -p_{2x}\cos\theta_{2}+p_{2y}\sin\theta_{2}
+\end{pmatrix}\begin{pmatrix}a_{1x}\\
+a_{1y}\\
+a_{1h}\\
+a_{2x}\\
+a_{2y}\\
+a_{2h}\\
+R_{x}\\
+R_{y}\\
+R_{\theta}\\
+F_{x}\\
+F_{y}
+\end{pmatrix}=\begin{pmatrix}0\\
+-gm_{1}\\
+0\\
+0\\
+-gm_{2}\\
+0\\
+0\\
+0\\
+0\\
+\dot{\theta}_{2}^{2}\left(-p_{2x}\cos\theta_{2}+p_{2y}\sin\theta_{2}\right)-\dot{\theta}_{1}^{2}\left(-p_{1x}\cos\theta_{1}+p_{1y}\sin\theta_{1}\right)\\
+\dot{\theta}_{2}^{2}\left(-p_{2x}\sin\theta_{2}-p_{2y}\cos\theta_{2}\right)-\dot{\theta}_{1}^{2}\left(-p_{1x}\sin\theta_{1}-p_{1y}\cos\theta_{1}\right)
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Notice that the left hand side matrix is symmetrical
+\end_layout
+
+\end_body
+\end_document
