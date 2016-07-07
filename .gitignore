@@ -13,3 +13,6 @@ _build
 # Lyx
 \#*\#
 *~
+
+# rope
+.rope*
