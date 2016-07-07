@@ -164,6 +164,24 @@ class Rectangle(RigidBody):
 
 
 class Constraint(object):
+    """Base class for a constraint."""
+
+    def __init__(self, rigid_bodies, size)
+
+        self.rigid_bodies = rigid_bodies
+        self.N = len(rigid_bodies)
+
+        self.size = size
+
+    def initialize(self, system):
+
+        # Find indices of rigid bodies
+        rb_is = [system.indices[system.rigid_bodies.index(rb)]
+                 for rb in self.rigid_bodies]
+
+        self.As = [system.A[rb_i:rb_i+3, i:i+self.size]
+                   for rb_i in rb_is]
+        self.b  = system.b[i:i+self.size]
 
     def update_system(self, system, state):
 
@@ -182,30 +200,23 @@ class Rigid(Constraint):
 
     def __init__(self, rigid_body):
 
-        self.rigid_body = rigid_body
-        self.window = None
+        Constraint.__init__([rigid_body], 3)
 
-        self.size = 3
+    def initialize(self, state):
 
-    def initialize(self, system, i):
-
-        # Find index of rigib body
-        rb_i = system.indices[system.rigid_bodies.index(self.rigid_body)]
-
-        # Create a slice
-        self.window = system.A[rb_i:rb_i+self.size, i:i+self.size]
-        self.window[:] = np.eye(3)
+        A = np.eye(3)
+        b = np.zeros(3)
+        return (A, b)
 
 
 class Pin(Constraint):
 
     def __init__(self, rb1, p1, rb2, p2):
 
-        self.size = 2
+        Constraint.__init__([rb1, rb2], 2)
+
         self.p1 = p1
         self.p2 = p2
-        self.rb1 = rb1
-        self.rb2 = rb2
 
         # Drawing Stuff
         cs = (0, 255, 0)
@@ -217,7 +228,6 @@ class Pin(Constraint):
         ps = np.c_[xs, ys].flatten()
 
         self.vl = pyglet.graphics.vertex_list(N, ('v2f', ps), ('c3B', N*cs))
-
 
     def draw(self):
 
@@ -237,33 +247,22 @@ class Pin(Constraint):
         gl.glTranslatef(p[0], p[1], 0)
         self.vl.draw(pyglet.gl.GL_LINE_LOOP)
 
+    def update_system(self, states):
 
-    def initialize(self, system, i):
+        theta1 = states[0][2]
+        theta2 = states[1][2]
 
-        self.system = system
+        dtheta1 = states[0][5]
+        dtheta2 = states[1][5]
 
-        # Find rb indices
-        self.rb1_i = system.indices[system.rigid_bodies.index(self.rb1)]
-        self.rb2_i = system.indices[system.rigid_bodies.index(self.rb2)]
+        A1 =  np.vstack(( np.eye(2),
+                          dot(dR(theta1), self.p1) ))
+        A2 = -np.vstack(( np.eye(2),
+                          dot(dR(theta2), self.p2) ))
 
-        self.w1 = system.A[self.rb1_i:self.rb1_i+3, i:i+self.size]
-        self.w2 = system.A[self.rb2_i:self.rb2_i+3, i:i+self.size]
-        self.w3 = system.b[i:i+self.size]
+        b = dtheta1**2*dot(R(theta1), self.p1) - dtheta2**2*dot(R(theta2), self.p2)
 
-    def update_system(self, system, state):
-
-        theta1 = state[self.rb1_i+2]
-        theta2 = state[self.rb2_i+2]
-
-        dtheta1 = state[self.rb1_i+2 + 3*len(system.rigid_bodies)]
-        dtheta2 = state[self.rb2_i+2 + 3*len(system.rigid_bodies)]
-
-        self.w1[:] =  np.vstack(( np.eye(2),
-                               dot(dR(theta1), self.p1) ))
-        self.w2[:] = -np.vstack(( np.eye(2),
-                               dot(dR(theta2), self.p2) ))
-
-        self.w3[:] = dtheta1**2*dot(R(theta1), self.p1) - dtheta2**2*dot(R(theta2), self.p2)
+        return (A1, A2, b)
 
     def error(self, state):
 
@@ -275,3 +274,20 @@ class Pin(Constraint):
 
         error = norm(pc1 + dot(R(h1), self.p1) - pc2 - dot(R(h2), self.p2))
         return error
+
+
+class Rolling(Constraint):
+
+    def __init__(self, rigid_body):
+
+        Constraint.__init__([rigid_body], 2)
+        self.R = rigid_body.radius
+
+    def initialize(self):
+
+        A = np.array([[1, 0],
+                      [0, 1],
+                      [-self.R, 0]])
+        b = np.zeros(self.size)
+
+        return (A, b)

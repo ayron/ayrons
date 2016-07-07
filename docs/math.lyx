@@ -115,7 +115,7 @@ a_{1h}
 
 \end_layout
 
-\begin_layout Subsubsection*
+\begin_layout Subsection*
 Constraints
 \end_layout
 
@@ -423,6 +423,18 @@ R_{N}
 
 \end_layout
 
+\begin_layout Subsection*
+Sensors
+\end_layout
+
+\begin_layout Subsection*
+Actuators
+\end_layout
+
+\begin_layout Subsection*
+Controllers
+\end_layout
+
 \begin_layout Section*
 System Construction
 \end_layout
@@ -596,6 +608,73 @@ F_{y}
 
 \begin_layout Standard
 Notice that the left hand side matrix is symmetrical
+\end_layout
+
+\begin_layout Section*
+Class Implementation
+\end_layout
+
+\begin_layout Standard
+So waht we see is that
+\end_layout
+
+\begin_layout Itemize
+A constraint will apply to some number of rigid bodies 
+\begin_inset Formula $N_{rb}$
+\end_inset
+
+.
+ 1 and 2 are shown here.
+\end_layout
+
+\begin_layout Itemize
+A constraint will add some number of new reaction forces 
+\begin_inset Formula $M$
+\end_inset
+
+ which is equal to the number of new equations.
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $N$
+\end_inset
+
+ and 
+\begin_inset Formula $M$
+\end_inset
+
+ define the size of the constraint.
+\end_layout
+
+\begin_layout Itemize
+The constraint data consists of 
+\begin_inset Formula $N$
+\end_inset
+
+, 
+\begin_inset Formula $3$
+\end_inset
+
+ by 
+\begin_inset Formula $M$
+\end_inset
+
+ matrices of the form above.
+ Each matrix is a function of the state of the corresponding rigid body,
+ althought sometime constant.
+ And also a 
+\begin_inset Formula $M$
+\end_inset
+
+ long peice of 
+\begin_inset Formula $b$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Each contraint class should need it size
 \end_layout
 
 \end_body
