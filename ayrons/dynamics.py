@@ -201,8 +201,8 @@ class System(object):
     def dynamic_system(self, t, state):
         """Solve the dynamic system."""
 
-        ps = state[:len(state)/2]
-        vs = state[len(state)/2:]
+        ps = state[:len(state)//2]
+        vs = state[len(state)//2:]
 
         # y  ~ [p1, p2, v1, v2]
         # dy ~ [v1, v2, a1, a2]
