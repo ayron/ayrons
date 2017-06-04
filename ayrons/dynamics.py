@@ -3,29 +3,28 @@
 
 import scipy.linalg as la
 import numpy as np
+import sympy as sp
 
 from numpy import dot, array, sin, cos
 from scipy.integrate import ode
 from scipy.optimize import minimize
 from scipy.linalg import norm
+from sympy.physics.vector import dynamicsymbols
 
 import pyglet
 import pyglet.gl as gl
 
+from time import time
+
 np.set_printoptions(precision=2)
 
 # Physical constants
-g = 4.81    # m/s/s
+g_value = 4.81    # m/s/s
 
 
 def R(a):
-    return array([[ cos(a), -sin(a)],
-                  [ sin(a),  cos(a)]])
-
-
-def dR(a):
-    return array([[-sin(a), -cos(a)],
-                  [ cos(a), -sin(a)]])
+    return sp.Matrix([[ sp.cos(a), -sp.sin(a)],
+                      [ sp.sin(a),  sp.cos(a)]])
 
 
 def get_indices(iterator):
@@ -43,20 +42,117 @@ class System(object):
         self.rigid_bodies = []
         self.constraints  = []
 
+    def __str__(self):
+        return 'System of {} rigid bodies and {} constraints' \
+            ''.format(len(self.rigid_bodies), len(self.constraints))
+
     def initialize(self):
+        """Derive the system of dynamic equations."""
 
-        # Calculate indices
-        self.indices = [0]
-        for item in (self.rigid_bodies + self.constraints):
-            self.indices.append(item.size + self.indices[-1])
+        N = len(self.rigid_bodies)
+        C = len(self.constraints)
 
-        # Initial matrix
-        self.A = np.zeros((self.indices[-1], self.indices[-1]))
-        self.b = np.zeros(self.indices[-1])
+        print('Provided with {} rigid bodies'.format(N))
+        print('Provided with {} constraints'.format(N))
 
-        # Initialize the rigid bodies and contraints
-        for i, item in zip(self.indices, self.rigid_bodies + self.constraints):
-            item.initialize(self, i)
+        # Create algebiac symbols
+        t, g = sp.symbols('t g')
+
+        ms = sp.symbols('m_0:{}'.format(N))
+        Is = sp.symbols('I_0:{}'.format(N))
+
+        vx = dynamicsymbols('vy_0:{}'.format(N))
+        vy = dynamicsymbols('vx_0:{}'.format(N))
+        vh = dynamicsymbols('w_0:{}'.format(N))
+
+        xs = dynamicsymbols('x_0:{}'.format(N))
+        ys = dynamicsymbols('y_0:{}'.format(N))
+        hs = dynamicsymbols('h_0:{}'.format(N))
+
+        # Take first and second derivative
+        dxs = [sp.diff(x, t) for x in xs]
+        dys = [sp.diff(y, t) for y in ys]
+        dhs = [sp.diff(h, t) for h in hs]
+
+        ddxs = [sp.diff(x, t, t) for x in xs]
+        ddys = [sp.diff(y, t, t) for y in ys]
+        ddhs = [sp.diff(h, t, t) for h in hs]
+
+        # The Lagrangian
+        L = sum([sp.S(1)/2*m*(dx**2 + dy**2) + sp.S(1)/2*I*dh**2 - m*g*y
+                 for m, I, dx, dy, dh, y
+                 in zip(ms, Is, dxs, dys, dhs, ys)])
+
+        #print('The Lagrangian is:')
+        #sp.pprint(L)
+
+        # Assign symbols to rigid_bodies
+        for rb, x, y, h in zip(self.rigid_bodies, xs, ys, hs):
+            rb.symbols = [x, y, h]
+
+
+        # Get all constraint equations
+        Ceqs = [e
+                for c
+                in self.constraints
+                for e
+                in c.equations2()]
+
+        #print('Constraint Equations:')
+        #for e in Ceqs:
+        #    sp.pprint(e)
+
+        # Lagrangian Multipliers
+        As = dynamicsymbols('A_0:{}'.format(len(Ceqs)))
+
+        # Use to ensure constaints are met during the simulation
+        self.constraint_equations = sp.lambdify(xs+ys+hs, Ceqs, 'numpy')
+
+        ddCeqs = [sp.diff(e, t, t) for e in Ceqs]
+
+        # Sum of contraint equations with lagrange multipliers
+        K = sum([A*e for A, e in zip(As, Ceqs)])
+
+        # External forces
+        # TODO
+        Q = 0
+
+        # Lagrange's Equations
+        leq = [sp.diff(L + K, s) - sp.diff(L, ds, t) + Q
+               for s, ds in zip(xs + ys + hs, dxs + dys + dhs)]
+
+        system = sp.Matrix(leq + ddCeqs)
+        uks = sp.Matrix(ddxs + ddys + ddhs + As)
+
+        # Create a matrix form for the equations
+        A = system.jacobian(uks)
+        b = A*uks-system
+
+
+        # Lambdify does not handle general expressions as inputs,
+        # such as dx/dt, thus we substitute speed for these values
+        A = A.subs(dict(zip(dxs+dys+dhs, vx+vy+vh)))
+        b = b.subs(dict(zip(dxs+dys+dhs, vx+vy+vh)))
+
+        #sp.pprint(A)
+        #sp.pprint(b)
+
+        # Subsitute real values
+        masses = [rb.m for rb in self.rigid_bodies]
+        mois   = [rb.I for rb in self.rigid_bodies]
+        A = A.subs(dict(zip(ms, masses)))
+        A = A.subs(dict(zip(Is, mois)))
+        A = A.subs(g, 9.81)
+
+        b = b.subs(dict(zip(ms, masses)))
+        b = b.subs(dict(zip(Is, mois)))
+        b = b.subs(g, 9.81)
+
+        # This system of questions ready for numpy to solve
+        self.A_f = sp.lambdify(xs+ys+hs+vx+vy+vh, A, 'numpy')
+        self.b_f = sp.lambdify(xs+ys+hs+vx+vy+vh, b, 'numpy')
+
+        from inspect import signature
 
         # Initial Conditions
         self.t0    = 0.0
@@ -65,23 +161,25 @@ class System(object):
         self.propogator = ode(self.dynamic_system).set_integrator('vode', method='adams')
         self.propogator.set_initial_value(self.state, self.t0)
 
+
     def generate_initial_conditions(self):
         """Collect the initial conditions provided by the user,
         and constrain the given the constraints."""
 
         # Collect ICs
-        ics = array([rb.ics for rb in self.rigid_bodies], np.float64)
-        ics = np.hstack((ics[:,0:3].flatten(), ics[:,3:6].flatten()))
+        ics = array([rb.state for rb in self.rigid_bodies], np.float64)
+        ics = ics.T.flatten()
 
         # Constrain
         def error(state):
 
-            error = sum(c.error(state) for c in self.constraints)
-            return error
+            errors = self.constraint_equations(*state)
+            return np.dot(errors, errors)
 
-        res = minimize(error, ics, method='Nelder-Mead')
-        print res
-        return res.x
+        res = minimize(error, ics[:len(ics)/2], method='Nelder-Mead')
+        ics[:len(ics)/2] = res.x
+
+        return ics
 
 
     def dynamic_system(self, t, state):
@@ -93,50 +191,58 @@ class System(object):
         # y  ~ [p1, p2, v1, v2]
         # dy ~ [v1, v2, a1, a2]
 
-        for i, c in enumerate(self.constraints):
+        solution = np.linalg.solve(self.A_f(*state), self.b_f(*state))
+        accel    = solution[:len(ps),0]
 
-            c.update_system(self, state)
+        dstate = np.hstack((vs, accel))
 
-        # Make A symetrical
-        D = self.A + self.A.T - np.diag(self.A.diagonal())
-
-        x = la.solve(D, self.b)
-        dy = np.hstack((vs, x[:3*len(self.rigid_bodies)]))
-
-        return dy
+        return dstate
 
     def propogate(self, dt):
         """Propogate the system forward in time."""
 
         self.state = self.propogator.integrate(self.propogator.t + dt)
 
+        # Copy state to rigid bodies
+        N = len(self.rigid_bodies)
+        for i, rb in enumerate(self.rigid_bodies):
+            rb.state = self.state[i::N]
+
 
 class RigidBody(object):
 
-    def __init__(self, mass=1, moi=1,
-                 ics=6*[0]):
+    def __init__(self, mass=1, moi=1, ics=6*[0]):
 
         self.size = 3
 
         self.m = mass  # kg
         self.I = moi   # kgm^2
-        self.ics = ics
+        self.state = ics
 
         # Mass matrix
         self.M = np.array([[self.m, 0, 0],
                            [0, self.m, 0],
                            [0, 0, self.I]], np.float64)
 
-    def initialize(self, system, i):
+        self.symbols = dynamicsymbols('x y h')
 
-        self.rb_i = i
-        self.system = system
+    @property
+    def x(self):
+        return self.symbols[0]
 
-        s = self.size
-        system.A[i:i+s, i:i+s] = self.M
+    @property
+    def y(self):
+        return self.symbols[1]
 
-        # Add gravity
-        system.b[i+1] = -g*self.m
+    @property
+    def h(self):
+        return self.symbols[2]
+
+    @property
+    def p(self):
+        return sp.Matrix([[self.symbols[0]],
+                          [self.symbols[1]]])
+
 
 
 class Rectangle(RigidBody):
@@ -156,36 +262,46 @@ class Rectangle(RigidBody):
 
     def draw(self):
 
+        x, y, h, _, _, _ = self.state
+
         gl.glLoadIdentity()
-        x, y, h = self.system.state[self.rb_i:self.rb_i+3]
         gl.glTranslatef(x, y, 0)
         gl.glRotatef(np.rad2deg(h), 0, 0, 1)
         self.vl.draw(pyglet.gl.GL_LINE_LOOP)
 
 
+class Actuator(object):
+    pass
+
+class Force(Actuator):
+
+    def init(self, rb):
+
+        self.rb = rb
+
+    def equations(self, t):
+
+        return 0
+
+class Moment(Actuator):
+
+    def init(self, rb):
+
+        self.rb = rb
+
+    def equations(self, t):
+
+        return [sp.sin(t), 0]
+
+
 class Constraint(object):
     """Base class for a constraint."""
 
-    def __init__(self, rigid_bodies, size)
+    def __init__(self, rigid_bodies, size):
 
         self.rigid_bodies = rigid_bodies
         self.N = len(rigid_bodies)
-
         self.size = size
-
-    def initialize(self, system):
-
-        # Find indices of rigid bodies
-        rb_is = [system.indices[system.rigid_bodies.index(rb)]
-                 for rb in self.rigid_bodies]
-
-        self.As = [system.A[rb_i:rb_i+3, i:i+self.size]
-                   for rb_i in rb_is]
-        self.b  = system.b[i:i+self.size]
-
-    def update_system(self, system, state):
-
-        pass
 
     def draw(self):
 
@@ -200,23 +316,25 @@ class Rigid(Constraint):
 
     def __init__(self, rigid_body):
 
-        Constraint.__init__([rigid_body], 3)
+        super().__init__([rigid_body], 3)
 
-    def initialize(self, state):
+    def equations(self, xs, ys, hs):
 
-        A = np.eye(3)
-        b = np.zeros(3)
-        return (A, b)
+        return [xs[0], ys[0], hs[0]]
 
+    def equations2(self):
+
+        rb = self.rigid_bodies[0]
+        return [rb.x, rb.y, rb.h]
 
 class Pin(Constraint):
 
     def __init__(self, rb1, p1, rb2, p2):
 
-        Constraint.__init__([rb1, rb2], 2)
+        super().__init__([rb1, rb2], 2)
 
-        self.p1 = p1
-        self.p2 = p2
+        self.p1 = sp.Matrix(p1)
+        self.p2 = sp.Matrix(p2)
 
         # Drawing Stuff
         cs = (0, 255, 0)
@@ -229,6 +347,7 @@ class Pin(Constraint):
 
         self.vl = pyglet.graphics.vertex_list(N, ('v2f', ps), ('c3B', N*cs))
 
+    '''
     def draw(self):
 
         gl.glLoadIdentity()
@@ -246,48 +365,37 @@ class Pin(Constraint):
         p = pc + dot(R(h), self.p2)
         gl.glTranslatef(p[0], p[1], 0)
         self.vl.draw(pyglet.gl.GL_LINE_LOOP)
+    '''
 
-    def update_system(self, states):
+    def equations(self, xs, ys, hs):
 
-        theta1 = states[0][2]
-        theta2 = states[1][2]
+        pc0 = sp.Matrix([[xs[0]], [ys[0]]])
+        pc1 = sp.Matrix([[xs[1]], [ys[1]]])
 
-        dtheta1 = states[0][5]
-        dtheta2 = states[1][5]
+        eq = pc0 + R(hs[0])*self.p1 - pc1 - R(hs[1])*self.p2
 
-        A1 =  np.vstack(( np.eye(2),
-                          dot(dR(theta1), self.p1) ))
-        A2 = -np.vstack(( np.eye(2),
-                          dot(dR(theta2), self.p2) ))
+        return eq
 
-        b = dtheta1**2*dot(R(theta1), self.p1) - dtheta2**2*dot(R(theta2), self.p2)
+    def equations2(self):
 
-        return (A1, A2, b)
+        p0 = self.rigid_bodies[0].p
+        h0 = self.rigid_bodies[0].h
 
-    def error(self, state):
+        p1 = self.rigid_bodies[1].p
+        h1 = self.rigid_bodies[1].h
 
-        pc1 = state[self.rb1_i:self.rb1_i+2]
-        h1  = state[self.rb1_i+2]
+        eq = p0 + R(h0)*self.p1 - p1 - R(h1)*self.p2
 
-        pc2 = state[self.rb2_i:self.rb2_i+2]
-        h2  = state[self.rb2_i+2]
-
-        error = norm(pc1 + dot(R(h1), self.p1) - pc2 - dot(R(h2), self.p2))
-        return error
+        return eq
 
 
 class Rolling(Constraint):
 
     def __init__(self, rigid_body):
 
-        Constraint.__init__([rigid_body], 2)
+        super(Rolling, self).__init__([rigid_body], 2)
         self.R = rigid_body.radius
 
-    def initialize(self):
+    def equations(self, xs, ys, hs):
 
-        A = np.array([[1, 0],
-                      [0, 1],
-                      [-self.R, 0]])
-        b = np.zeros(self.size)
-
-        return (A, b)
+        pass

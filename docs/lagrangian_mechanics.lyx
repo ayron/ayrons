@@ -1,0 +1,618 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass empyria_short
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement H
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+AYRONS Lagrangian Mechanics
+\end_layout
+
+\begin_layout PreparedBy
+Ayron Catteau
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+AYRONS uses lagrangian mechanics to algebraicly derive the equations of
+ motion of the dynamic system.
+ 
+\end_layout
+
+\begin_layout Section
+Procedure
+\end_layout
+
+\begin_layout Standard
+Rigid bodies are parameterized using generalized coordinates (
+\begin_inset Formula $x$
+\end_inset
+
+, 
+\begin_inset Formula $y$
+\end_inset
+
+, and 
+\begin_inset Formula $\theta$
+\end_inset
+
+).
+ Constraints are incorperated using the langrange multipliers method.
+ The lagrangian of the system is calculated using the kinetic and potential
+ energy: 
+\begin_inset Formula $L=T-V$
+\end_inset
+
+.
+ The system of equations are determined by evaluating the Langrange's Equations:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\dfrac{\partial L}{\partial\mathbf{r}_{k}}-\dfrac{d}{dt}\dfrac{\partial L}{\partial\dot{\mathbf{r}}_{k}}+\sum_{i=1}^{C}\lambda_{i}\dfrac{\partial f_{i}}{\partial\mathbf{r}_{k}}=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Example: Double Pendulum
+\end_layout
+
+\begin_layout Standard
+Three rigid bodies:
+\end_layout
+
+\begin_layout Itemize
+The ground (
+\begin_inset Formula $m_{1}$
+\end_inset
+
+, 
+\begin_inset Formula $I_{1}$
+\end_inset
+
+, 
+\begin_inset Formula $x_{1}$
+\end_inset
+
+, 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+, and 
+\begin_inset Formula $\theta_{1}$
+\end_inset
+
+),
+\end_layout
+
+\begin_layout Itemize
+the first arm (
+\begin_inset Formula $m_{2}$
+\end_inset
+
+, 
+\begin_inset Formula $I_{2}$
+\end_inset
+
+, 
+\begin_inset Formula $x_{2}$
+\end_inset
+
+, 
+\begin_inset Formula $y_{2}$
+\end_inset
+
+, and 
+\begin_inset Formula $\theta_{2}$
+\end_inset
+
+), and
+\end_layout
+
+\begin_layout Itemize
+the second arm (
+\begin_inset Formula $m_{3}$
+\end_inset
+
+, 
+\begin_inset Formula $I_{3}$
+\end_inset
+
+, 
+\begin_inset Formula $x_{3}$
+\end_inset
+
+, 
+\begin_inset Formula $y_{3}$
+\end_inset
+
+, and 
+\begin_inset Formula $\theta_{3}$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathbf{r}=\begin{pmatrix}x_{1} & y_{1} & \theta_{1} & x_{2} & y_{2} & \theta_{2} & x_{3} & y_{3} & \theta_{3}\end{pmatrix}^{T}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The Lagrangian is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+L & =T-V\\
+ & =\frac{1}{2}m_{1}\left(\dot{x}_{1}^{2}+\dot{y}_{1}^{2}\right)+\frac{1}{2}m_{2}\left(\dot{x}_{2}^{2}+\dot{y}_{2}^{2}\right)+\frac{1}{2}m_{3}\left(\dot{x}_{3}^{2}+\dot{y}_{3}^{2}\right)+\frac{1}{2}I_{1}\dot{\theta}_{1}^{2}+\frac{1}{2}I_{2}\dot{\theta}_{2}^{2}+\frac{1}{2}I_{3}\dot{\theta}_{3}^{2}-m_{1}gy_{1}-m_{2}gy_{2}-m_{3}gy_{3}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There are there are the follow constraints:
+\end_layout
+
+\begin_layout Itemize
+The ground body is rigidly fixed:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+f_{1} & =x_{1}\\
+f_{2} & =y_{1}\\
+f_{3} & =\theta_{1}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+The pin between the ground and the first arm:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+f_{4} & =x_{2}+p_{2x}\cos\theta_{2}-p_{2y}\sin\theta_{2}-x_{1}-p_{1x}\cos\theta_{1}+p_{1y}\sin\theta_{1}\\
+f_{5} & =y_{2}+p_{2x}\sin\theta_{2}+p_{2y}\cos\theta_{2}-y_{1}-p_{1x}\sin\theta_{1}-p_{1y}\cos\theta_{1}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+The pin between the first and second arms:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+f_{6} & =x_{3}+p_{3x}\cos\theta_{3}-p_{3y}\sin\theta_{3}-x_{2}-p_{2x'}\cos\theta_{2}+p_{2y'}\sin\theta_{2}\\
+f_{7} & =y_{3}+p_{3x}\sin\theta_{3}+p_{3y}\cos\theta_{3}-y_{2}-p_{2x'}\sin\theta_{2}-p_{2y'}\cos\theta_{2}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then we can apply Lagrange's Equations:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\dfrac{\partial L}{\partial\mathbf{r}_{k}}-\dfrac{d}{dt}\dfrac{\partial L}{\partial\dot{\mathbf{r}}_{k}}+\sum_{i=1}^{C}\lambda_{i}\dfrac{\partial f_{i}}{\partial\mathbf{r}_{k}}=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=1$
+\end_inset
+
+ (
+\begin_inset Formula $x_{1}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(0\right)-\left(m_{1}\ddot{x}_{1}\right)+\left(\lambda_{1}\right)+\left(0\right)+\left(0\right)+\left(-\lambda_{4}\right)+\left(0\right)+\left(0\right)+\left(0\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=2$
+\end_inset
+
+ (
+\begin_inset Formula $y_{1}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(-m_{1}g\right)-\left(m_{1}\ddot{y}_{1}\right)+\left(0\right)+\left(\lambda_{2}\right)+\left(0\right)+\left(0\right)+\left(-\lambda_{5}\right)+\left(0\right)+\left(0\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=3$
+\end_inset
+
+ (
+\begin_inset Formula $\theta_{1}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(0\right)-\left(I_{1}\ddot{\theta}_{1}\right)+\left(0\right)+\left(0\right)+\left(\lambda_{3}\right)+\left(\lambda_{4}\left[p_{1x}\sin\theta_{1}+p_{1y}\cos\theta_{1}\right]\right)+\left(\lambda_{5}\left[-p_{1x}\cos\theta_{1}+p_{1y}\sin\theta_{1}\right]\right)+\left(0\right)+\left(0\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=4$
+\end_inset
+
+ (
+\begin_inset Formula $x_{2}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(0\right)-\left(m_{2}\ddot{x}_{2}\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(\lambda_{4}\right)+\left(0\right)+\left(-\lambda_{6}\right)+\left(0\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=5$
+\end_inset
+
+ (
+\begin_inset Formula $y_{2}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(-m_{2}g\right)-\left(m_{2}\ddot{y}_{2}\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(\lambda_{5}\right)+\left(0\right)+\left(-\lambda_{7}\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=6$
+\end_inset
+
+ (
+\begin_inset Formula $\theta_{2}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(0\right)-\left(I_{1}\ddot{\theta}_{2}\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(\lambda_{4}\left[-p_{2x}\sin\theta_{2}-p_{2y}\cos\theta_{2}\right]\right)+\left(\lambda_{5}\left[p_{2x}\cos\theta_{2}-p_{2y}\sin\theta_{2}\right]\right)+\left(\lambda_{6}\left[p_{2x'}\sin\theta_{2}+p_{2y'}\cos\theta_{2}\right]\right)+\left(\lambda_{7}\left[-p_{2x'}\cos\theta_{2}+p_{2y'}\sin\theta_{2}\right]\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=7$
+\end_inset
+
+ (
+\begin_inset Formula $x_{3}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(0\right)-\left(m_{3}\ddot{x}_{3}\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(\lambda_{6}\right)+\left(0\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=8$
+\end_inset
+
+ (
+\begin_inset Formula $y_{3}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(-m_{3}g\right)-\left(m_{3}\ddot{y}_{3}\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(\lambda_{7}\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $k=9$
+\end_inset
+
+ (
+\begin_inset Formula $\theta_{3}$
+\end_inset
+
+):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(0\right)-\left(I_{1}\ddot{\theta}_{3}\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(0\right)+\left(\lambda_{6}\left[-p_{3x}\sin\theta_{3}-p_{3y}\cos\theta_{3}\right]\right)+\left(\lambda_{7}\left[p_{3x}\cos\theta_{3}-p_{3y}\sin\theta_{3}\right]\right)=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In matrix form, the equations of motion would be:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{pmatrix}-m_{1} &  &  &  &  &  &  &  &  & 1 &  &  & -1\\
+ & -m_{1} &  &  &  &  &  &  &  &  & 1 &  &  & -1\\
+ &  & -I_{1} &  &  &  &  &  &  &  &  & 1 & p_{1x}\sin\theta_{1}+p_{1y}\cos\theta_{1} & -p_{1x}\cos\theta_{1}+p_{1y}\sin\theta_{1}\\
+ &  &  & -m_{2} &  &  &  &  &  &  &  &  & 1 &  & -1\\
+ &  &  &  & -m_{2} &  &  &  &  &  &  &  &  & 1 &  & -1\\
+ &  &  &  &  & -I_{2} &  &  &  &  &  &  & -p_{2x}\sin\theta_{2}-p_{2y}\cos\theta_{2} & p_{2x}\cos\theta_{2}-p_{2y}\sin\theta_{2} & p_{2x'}\sin\theta_{2}+p_{2y'}\cos\theta_{2} & -p_{2x'}\cos\theta_{2}+p_{2y'}\sin\theta_{2}\\
+ &  &  &  &  &  & -m_{3} &  &  &  &  &  &  &  & 1\\
+ &  &  &  &  &  &  & -m_{3} &  &  &  &  &  &  &  & 1\\
+ &  &  &  &  &  &  &  & -I_{3} &  &  &  &  &  & -p_{3x}\sin\theta_{3}-p_{3y}\cos\theta_{3} & p_{3x}\cos\theta_{3}-p_{3y}\sin\theta_{3}\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\end{pmatrix}\begin{pmatrix}\ddot{x}_{1}\\
+\ddot{y}_{1}\\
+\ddot{\theta}_{1}\\
+\ddot{x}_{2}\\
+\ddot{y}_{2}\\
+\ddot{\theta}_{2}\\
+\ddot{x}_{3}\\
+\ddot{y}_{3}\\
+\ddot{\theta}_{3}\\
+\lambda_{1}\\
+\lambda_{2}\\
+\lambda_{3}\\
+\lambda_{4}\\
+\lambda_{5}\\
+\lambda_{6}\\
+\lambda_{7}
+\end{pmatrix}=\begin{pmatrix}\\
+m_{1}g\\
+\\
+\\
+m_{2}g\\
+\\
+\\
+m_{3}g\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\\
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Joints
+\end_layout
+
+\begin_layout Subsection
+Pin Joint
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+R\left(\theta\right) & =\begin{pmatrix}\cos\theta & -\sin\theta\\
+\sin\theta & \cos\theta
+\end{pmatrix}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+p_{c1}+R\left(\theta_{1}\right)p_{1} & =p_{c2}+R\left(\theta_{2}\right)p_{2}\\
+p_{c1}+\begin{pmatrix}\cos\theta_{1} & -\sin\theta_{1}\\
+\sin\theta_{1} & \cos\theta_{1}
+\end{pmatrix}p_{1} & =p_{c2}+\begin{pmatrix}\cos\theta_{2} & -\sin\theta_{2}\\
+\sin\theta_{2} & \cos\theta_{2}
+\end{pmatrix}p_{2}\\
+x_{1}+p_{1x}\cos\theta_{1}-p_{1y}\sin\theta_{1} & =x_{2}+p_{2x}\cos\theta_{2}-p_{2y}\sin\theta_{2}\\
+y_{1}+p_{1x}\sin\theta_{1}+p_{1y}\cos\theta_{1} & =y_{2}+p_{2x}\sin\theta_{2}+p_{2y}\cos\theta_{2}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

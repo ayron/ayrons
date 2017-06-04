@@ -19,6 +19,10 @@ if __name__ == '__main__':
                      height=0.5,
                      mass=1.0,
                      ics=[3.0, 4.0, -3.14/2, 0, 0, 0])
+    arm3 = Rectangle(width=5.0,
+                     height=0.5,
+                     mass=1.0,
+                     ics=[3.0, 4.0, -3.14, 0, 0, 0])
 
     # Constraints
     ground = Rigid(base)
@@ -26,11 +30,13 @@ if __name__ == '__main__':
                  arm1, (-2.5, 0.0))
     pin2   = Pin(arm1, (2.5, 0.0),
                  arm2, (-2.5, 0.0))
+    pin3   = Pin(arm2, (2.5, 0.0),
+                 arm3, (-2.5, 0.0))
 
     # Dynamic System
     double_pendulum = System()
-    double_pendulum.rigid_bodies = [base, arm1, arm2]
-    double_pendulum.constraints  = [ground, pin1, pin2]
+    double_pendulum.rigid_bodies = [base, arm1, arm2, arm3]
+    double_pendulum.constraints  = [ground, pin1, pin2, pin3]
     print(double_pendulum)
 
     double_pendulum.initialize()

@@ -8,14 +8,13 @@ import pyglet.gl as gl
 
 class Visualizer(pyglet.window.Window):
 
-    def __init__(self):
+    def __init__(self, system):
         super(Visualizer, self).__init__(resizable=False)
 
         self.center     = np.zeros(2)
         self.zoom       = 10.0
         self.zoom_scale = 0.10    # percentage scale during zoom for each scroll
 
-    def set_system(self, system):
         self.system = system
         self.system.initialize()
         pyglet.clock.schedule_interval(self.system.propogate, 1/60.)
