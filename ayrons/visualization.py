@@ -4,7 +4,7 @@
 import numpy as np
 import pyglet
 import pyglet.gl as gl
-
+from pyglet.window import key
 
 class Visualizer(pyglet.window.Window):
 
@@ -16,7 +16,7 @@ class Visualizer(pyglet.window.Window):
         self.zoom_scale = 0.10    # percentage scale during zoom for each scroll
 
         self.system = system
-        self.system.initialize()
+        #self.system.initialize()
         pyglet.clock.schedule_interval(self.system.propogate, 1/60.)
 
     def run(self):
@@ -60,3 +60,12 @@ class Visualizer(pyglet.window.Window):
         self.zoom = self.zoom2
 
         self.on_resize(self.width, self.height)
+
+    def on_key_press(self, symbol, modifiers):
+        """Key controls"""
+
+        if symbol == key.SPACE:
+            self.system.paused = not self.system.paused
+
+        elif symbol == key.Q:
+            pyglet.app.exit()

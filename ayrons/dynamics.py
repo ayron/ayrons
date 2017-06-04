@@ -42,6 +42,8 @@ class System(object):
         self.rigid_bodies = []
         self.constraints  = []
 
+        self.paused = True
+
     def __str__(self):
         return 'System of {} rigid bodies and {} constraints' \
             ''.format(len(self.rigid_bodies), len(self.constraints))
@@ -50,10 +52,6 @@ class System(object):
         """Derive the system of dynamic equations."""
 
         N = len(self.rigid_bodies)
-        C = len(self.constraints)
-
-        print('Provided with {} rigid bodies'.format(N))
-        print('Provided with {} constraints'.format(N))
 
         # Create algebiac symbols
         t, g = sp.symbols('t g')
@@ -97,18 +95,23 @@ class System(object):
                 in self.constraints
                 for e
                 in c.equations2()]
+        self.Ceqs = Ceqs
 
-        #print('Constraint Equations:')
-        #for e in Ceqs:
-        #    sp.pprint(e)
+        print('Constraint Equations:')
+        for e in Ceqs:
+            sp.pprint(e)
+
+        dCeqs = [sp.diff(e, t).subs(dict(zip(dxs+dys+dhs, vx+vy+vh)))
+                 for e in self.Ceqs]
+
+        # Use to ensure constaints are met during the simulation
+        self.constraint_equations = sp.lambdify(xs+ys+hs+vx+vy+vh, Ceqs+dCeqs, 'numpy')
+
+        ddCeqs = [sp.diff(e, t, t) for e in Ceqs]
 
         # Lagrangian Multipliers
         As = dynamicsymbols('A_0:{}'.format(len(Ceqs)))
 
-        # Use to ensure constaints are met during the simulation
-        self.constraint_equations = sp.lambdify(xs+ys+hs, Ceqs, 'numpy')
-
-        ddCeqs = [sp.diff(e, t, t) for e in Ceqs]
 
         # Sum of contraint equations with lagrange multipliers
         K = sum([A*e for A, e in zip(As, Ceqs)])
@@ -152,8 +155,6 @@ class System(object):
         self.A_f = sp.lambdify(xs+ys+hs+vx+vy+vh, A, 'numpy')
         self.b_f = sp.lambdify(xs+ys+hs+vx+vy+vh, b, 'numpy')
 
-        from inspect import signature
-
         # Initial Conditions
         self.t0    = 0.0
         self.state = self.generate_initial_conditions()
@@ -174,10 +175,25 @@ class System(object):
         def error(state):
 
             errors = self.constraint_equations(*state)
-            return np.dot(errors, errors)
 
-        res = minimize(error, ics[:len(ics)/2], method='Nelder-Mead')
-        ics[:len(ics)/2] = res.x
+            error = np.dot(errors, errors)
+            #print(error)
+            #print(state)
+            #print(errors)
+            return error
+
+
+        # TODO: It should be easy to determine the jacobian of these constraints
+        res = minimize(error, ics, method='Powell')
+
+        ics = res.x
+        if not res.success:
+            print('Constraints could not be met while calculating ICs')
+
+        # Copy state to rigid bodies
+        N = len(self.rigid_bodies)
+        for i, rb in enumerate(self.rigid_bodies):
+            rb.state = ics[i::N]
 
         return ics
 
@@ -201,12 +217,13 @@ class System(object):
     def propogate(self, dt):
         """Propogate the system forward in time."""
 
-        self.state = self.propogator.integrate(self.propogator.t + dt)
+        if not self.paused:
+            self.state = self.propogator.integrate(self.propogator.t + dt)
 
-        # Copy state to rigid bodies
-        N = len(self.rigid_bodies)
-        for i, rb in enumerate(self.rigid_bodies):
-            rb.state = self.state[i::N]
+            # Copy state to rigid bodies
+            N = len(self.rigid_bodies)
+            for i, rb in enumerate(self.rigid_bodies):
+                rb.state = self.state[i::N]
 
 
 class RigidBody(object):
@@ -307,25 +324,18 @@ class Constraint(object):
 
         pass
 
-    def error(self, state):
-
-        return 0
-
-
 class Rigid(Constraint):
 
     def __init__(self, rigid_body):
 
         super().__init__([rigid_body], 3)
 
-    def equations(self, xs, ys, hs):
-
-        return [xs[0], ys[0], hs[0]]
-
     def equations2(self):
 
         rb = self.rigid_bodies[0]
-        return [rb.x, rb.y, rb.h]
+        return [rb.x-rb.state[0],
+                rb.y-rb.state[1],
+                rb.h-rb.state[2]]
 
 class Pin(Constraint):
 
@@ -366,15 +376,6 @@ class Pin(Constraint):
         gl.glTranslatef(p[0], p[1], 0)
         self.vl.draw(pyglet.gl.GL_LINE_LOOP)
     '''
-
-    def equations(self, xs, ys, hs):
-
-        pc0 = sp.Matrix([[xs[0]], [ys[0]]])
-        pc1 = sp.Matrix([[xs[1]], [ys[1]]])
-
-        eq = pc0 + R(hs[0])*self.p1 - pc1 - R(hs[1])*self.p2
-
-        return eq
 
     def equations2(self):
 
