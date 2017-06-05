@@ -357,25 +357,18 @@ class Pin(Constraint):
 
         self.vl = pyglet.graphics.vertex_list(N, ('v2f', ps), ('c3B', N*cs))
 
-    '''
     def draw(self):
 
-        gl.glLoadIdentity()
-        pc = self.system.state[self.rb1_i:self.rb1_i+2]
-        h  = self.system.state[self.rb1_i+2]
+        rs = [self.p1, self.p2]
 
-        p = pc + dot(R(h), self.p1)
-        gl.glTranslatef(p[0], p[1], 0)
-        self.vl.draw(pyglet.gl.GL_LINE_LOOP)
+        for i in range(2):
+            gl.glLoadIdentity()
+            x, y, h, _, _, _ = self.rigid_bodies[i].state
+            pc = sp.Matrix([x, y])
 
-        gl.glLoadIdentity()
-        pc = self.system.state[self.rb2_i:self.rb2_i+2]
-        h  = self.system.state[self.rb2_i+2]
-
-        p = pc + dot(R(h), self.p2)
-        gl.glTranslatef(p[0], p[1], 0)
-        self.vl.draw(pyglet.gl.GL_LINE_LOOP)
-    '''
+            p = pc + R(h)*rs[i]
+            gl.glTranslatef(p[0], p[1], 0)
+            self.vl.draw(pyglet.gl.GL_LINE_LOOP)
 
     def equations2(self):
 
