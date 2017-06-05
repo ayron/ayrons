@@ -119,7 +119,7 @@ Rigid bodies are parameterized using generalized coordinates (
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\dfrac{\partial L}{\partial\mathbf{r}_{k}}-\dfrac{d}{dt}\dfrac{\partial L}{\partial\dot{\mathbf{r}}_{k}}+\sum_{i=1}^{C}\lambda_{i}\dfrac{\partial f_{i}}{\partial\mathbf{r}_{k}}=0
+\dfrac{\partial L}{\partial\mathbf{r}_{k}}-\dfrac{d}{dt}\dfrac{\partial L}{\partial\dot{\mathbf{r}}_{k}}+\sum_{i=1}^{C}\lambda_{i}\dfrac{\partial f_{i}}{\partial\mathbf{r}_{k}}-\sum_{i=1}^{C}\mathbf{F}_{i}\cdot\dfrac{\partial\mathbf{p}_{i}}{\partial\mathbf{r}_{k}}=0
 \]
 
 \end_inset
