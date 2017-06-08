@@ -1,20 +1,20 @@
 """OO Multi Body Dynamics
 """
 
-import scipy.linalg as la
+# import scipy.linalg as la
 import numpy as np
 import sympy as sp
 
-from numpy import dot, array, sin, cos
+from numpy import array, sin, cos
 from scipy.integrate import ode
 from scipy.optimize import minimize
-from scipy.linalg import norm
+# from scipy.linalg import norm
 from sympy.physics.vector import dynamicsymbols
 
 import pyglet
 import pyglet.gl as gl
 
-from time import time
+# from time import time
 
 np.set_printoptions(precision=2)
 
@@ -42,7 +42,7 @@ class System(object):
         self.rigid_bodies = []
         self.constraints  = []
 
-        self.paused = True
+        self.paused       = True
 
     def __str__(self):
         return 'System of {} rigid bodies and {} constraints' \
@@ -97,9 +97,9 @@ class System(object):
                 in c.equations2()]
         self.Ceqs = Ceqs
 
-        print('Constraint Equations:')
-        for e in Ceqs:
-            sp.pprint(e)
+        #print('Constraint Equations:')
+        #for e in Ceqs:
+        #    sp.pprint(e)
 
         dCeqs = [sp.diff(e, t).subs(dict(zip(dxs+dys+dhs, vx+vy+vh)))
                  for e in self.Ceqs]
@@ -162,6 +162,11 @@ class System(object):
         self.propogator = ode(self.dynamic_system).set_integrator('vode', method='adams')
         self.propogator.set_initial_value(self.state, self.t0)
 
+    def constraint_error(self, state):
+
+        errors = self.constraint_equations(*state)
+        error = np.dot(errors, errors)
+        return error
 
     def generate_initial_conditions(self):
         """Collect the initial conditions provided by the user,
@@ -172,19 +177,9 @@ class System(object):
         ics = ics.T.flatten()
 
         # Constrain
-        def error(state):
-
-            errors = self.constraint_equations(*state)
-
-            error = np.dot(errors, errors)
-            #print(error)
-            #print(state)
-            #print(errors)
-            return error
-
 
         # TODO: It should be easy to determine the jacobian of these constraints
-        res = minimize(error, ics, method='Powell')
+        res = minimize(self.constraint_error, ics, method='Powell')
 
         ics = res.x
         if not res.success:
@@ -207,12 +202,27 @@ class System(object):
         # y  ~ [p1, p2, v1, v2]
         # dy ~ [v1, v2, a1, a2]
 
-        solution = np.linalg.solve(self.A_f(*state), self.b_f(*state))
-        accel    = solution[:len(ps),0]
+        print(self.constraint_error(state))
+
+        A = self.A_f(*state)
+        b = self.b_f(*state).flatten()
+
+        # Add forces
+        body_forces       = self.forces(t, state)
+        constraint_forces = np.zeros(len(b) - len(body_forces))
+        b = b - np.hstack((body_forces, constraint_forces))
+        solution = np.linalg.solve(A, b)
+        accel    = solution[:len(ps)]
 
         dstate = np.hstack((vs, accel))
 
         return dstate
+
+    def forces(self, t, state):
+        """Evaluate forces being applied at time t."""
+
+        forces = [rb.net_force(t, state) for rb in self.rigid_bodies]
+        return np.hstack(zip(*forces))
 
     def propogate(self, dt):
         """Propogate the system forward in time."""
@@ -243,6 +253,8 @@ class RigidBody(object):
 
         self.symbols = dynamicsymbols('x y h')
 
+        self.forces = []
+
     @property
     def x(self):
         return self.symbols[0]
@@ -260,7 +272,24 @@ class RigidBody(object):
         return sp.Matrix([[self.symbols[0]],
                           [self.symbols[1]]])
 
+    def add_force(self, Class, location):
 
+        self.forces.append(Class(self, location))
+
+    def net_force(self, t, state):
+        """Returns (Fx, Fy, M)"""
+
+        forces = np.array([f.evaluate(t, state) for f in self.forces], dtype=np.float64)
+
+        if forces.size:
+            return np.sum(forces, axis=0)
+        else:
+            return np.zeros(3, dtype=np.float64)
+
+    def draw_forces(self):
+
+        for f in self.forces:
+            f.draw()
 
 class Rectangle(RigidBody):
 
@@ -286,29 +315,74 @@ class Rectangle(RigidBody):
         gl.glRotatef(np.rad2deg(h), 0, 0, 1)
         self.vl.draw(pyglet.gl.GL_LINE_LOOP)
 
+        self.draw_forces()
 
 class Actuator(object):
-    pass
 
-class Force(Actuator):
-
-    def init(self, rb):
+    def __init__(self, rb, force_location):
 
         self.rb = rb
+        self.r  = sp.Matrix(force_location)    # In body frame
 
-    def equations(self, t):
+        self.F_x = 0.0
+        self.F_y = 0.0
+        self.M   = 0.0
+
+
+        # Drawing lists
+        ps = ( 0.0,  0.1,
+               0.0, -0.1,
+               0.2,  0.0)
+        cs = (255, 255, 0)
+        self.arrow_head = pyglet.graphics.vertex_list(len(ps)//2, ('v2f', ps), ('c3B', (len(ps)//2)*cs))
+        self.arrow_body = pyglet.graphics.vertex_list(2, ('v2f', (0.0, 0.0, 1.0, 0.0)), ('c3B', 2*cs))
+
+    def force(self, t, state):
+        """Force applied at location."""
+
+        return 0, 0
+
+    def moment(self, t, state):
+        """Moment about CoM."""
 
         return 0
 
-class Moment(Actuator):
+    def evaluate(self, t, state):
 
-    def init(self, rb):
+        F_x, F_y = self.force(t, state)
 
-        self.rb = rb
+        # Moment due to force F
+        r = R(self.rb.h)*self.r
+        M_F = r[0]*F_y - r[1]*F_x
 
-    def equations(self, t):
+        M = self.moment(t, state) + M_F
 
-        return [sp.sin(t), 0]
+        self.F_x = F_x
+        self.F_y = F_y
+        self.M   = M
+
+        return F_x, F_y, M
+
+    def draw(self):
+
+        x, y, h, _, _, _ = self.rb.state
+
+        r     = R(self.rb.h)*self.r
+        angle = np.arctan2(self.F_y, self.F_x)
+        mag   = np.sqrt(self.F_x**2 + self.F_y**2)
+
+        if mag > 0.0:
+            gl.glLoadIdentity()
+            gl.glTranslatef(x+r[0], y+r[1], 0)
+            gl.glScalef(mag, mag, mag)
+            gl.glRotatef(np.rad2deg(angle), 0, 0, 1)
+            self.arrow_body.draw(pyglet.gl.GL_LINE_LOOP)
+
+            gl.glLoadIdentity()
+            gl.glTranslatef(x+r[0]+self.F_x, y+r[1]+self.F_y, 0)
+            gl.glRotatef(np.rad2deg(angle), 0, 0, 1)
+            self.arrow_head.draw(pyglet.gl.GL_LINE_LOOP)
+
 
 
 class Constraint(object):
@@ -323,6 +397,7 @@ class Constraint(object):
     def draw(self):
 
         pass
+
 
 class Rigid(Constraint):
 
