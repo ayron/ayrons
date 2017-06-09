@@ -202,7 +202,7 @@ class System(object):
         # y  ~ [p1, p2, v1, v2]
         # dy ~ [v1, v2, a1, a2]
 
-        print(self.constraint_error(state))
+        #print(self.constraint_error(state))
 
         A = self.A_f(*state)
         b = self.b_f(*state).flatten()
@@ -317,7 +317,7 @@ class Rectangle(RigidBody):
 
         self.draw_forces()
 
-class Actuator(object):
+class Force(object):
 
     def __init__(self, rb, force_location):
 
@@ -384,6 +384,33 @@ class Actuator(object):
             self.arrow_head.draw(pyglet.gl.GL_LINE_LOOP)
 
 
+class Moment(object):
+
+    def __init__(self):
+
+        self.F_x = 0.0
+        self.F_y = 0.0
+        self.M   = 0.0
+
+    def moment(self, t, state):
+        """Moment about CoM."""
+
+        return 0
+
+    def evaluate(self, t, state):
+
+        M = self.moment(t, state)
+
+        self.F_x = 0.0
+        self.F_y = 0.0
+        self.M   = self.moment(t, state)
+
+        return self.F_x, self.F_y, self.M
+
+    def draw(self):
+
+        pass
+
 
 class Constraint(object):
     """Base class for a constraint."""
@@ -412,6 +439,24 @@ class Rigid(Constraint):
                 rb.y-rb.state[1],
                 rb.h-rb.state[2]]
 
+class Friction(Moment):
+
+    def __init__(self, rb1, rb2):
+        super().__init__()
+
+        self.rb1 = rb1
+        self.rb2 = rb2
+
+    def moment(self, t, state):
+
+        w1 = self.rb1.state[5]
+        w2 = self.rb2.state[5]
+
+        b = 10.0
+        M = b*(w2-w1)
+
+        return M
+
 class Pin(Constraint):
 
     def __init__(self, rb1, p1, rb2, p2):
@@ -420,6 +465,10 @@ class Pin(Constraint):
 
         self.p1 = sp.Matrix(p1)
         self.p2 = sp.Matrix(p2)
+
+        # Create friction forces for both rbs
+        rb1.forces.append(Friction(rb1, rb2))
+        rb2.forces.append(Friction(rb2, rb1))
 
         # Drawing Stuff
         cs = (0, 255, 0)
