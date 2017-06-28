@@ -1,13 +1,13 @@
 """Examples of using ayron to simulate and visualize a double pendulum."""
 
 
-from ayrons.dynamics import System, Rectangle, Rigid, Pin, Actuator
+from ayrons.dynamics import System, Rectangle, Rigid, Pin, Force
 from ayrons.visualization import Visualizer
 
 import numpy as np
 
 
-class Push(Actuator):
+class Push(Force):
 
     def force(self, t, state):
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
                  arm2, (-2.5, 0.0))
 
     # Forces
-    arm2.add_force(Push, [0.0, 0.0])
+    arm2.forces.append(Push(arm2, [0.0, 0.0]))
 
     # Dynamic System
     double_pendulum = System()
