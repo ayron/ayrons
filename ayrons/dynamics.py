@@ -297,7 +297,7 @@ class Rectangle(RigidBody):
 
         mass = kwargs['mass']
         moi = (mass/12.0)*(height**2 + width**2)
-        super(Rectangle, self).__init__(moi=moi, **kwargs)
+        super().__init__(moi=moi, **kwargs)
 
         ps = ( 0.5*width,  0.5*height,
               -0.5*width,  0.5*height,
@@ -316,6 +316,48 @@ class Rectangle(RigidBody):
         self.vl.draw(pyglet.gl.GL_LINE_LOOP)
 
         self.draw_forces()
+
+
+class Circle(RigidBody):
+
+    def __init__(self, radius=1.0, **kwargs):
+
+        mass = kwargs['mass']
+        self.radius = radius
+        moi = 0.5*mass*radius**2
+        super().__init__(moi=moi, **kwargs)
+
+        thetas = np.linspace(0, 2*np.pi, 100)
+        xs = radius*np.cos(thetas)
+        ys = radius*np.sin(thetas)
+        ps = np.c_[xs, ys].flatten()
+        cs = (255, 255, 255)
+        N = len(ps)//2
+        self.vl = pyglet.graphics.vertex_list(N, ('v2f', ps), ('c3B', N*cs))
+
+        thetas = np.linspace(0, 2*np.pi, 4)
+        xs = radius*np.cos(thetas)
+        ys = radius*np.sin(thetas)
+        ps = np.c_[xs, ys].flatten()
+        cs = (200, 200, 200)
+        N = len(ps)//2
+        self.vl2 = pyglet.graphics.vertex_list(N, ('v2f', ps), ('c3B', N*cs))
+
+
+
+    def draw(self):
+
+        x, y, h, _, _, _ = self.state
+
+        gl.glLoadIdentity()
+        gl.glTranslatef(x, y, 0)
+        gl.glRotatef(np.rad2deg(h), 0, 0, 1)
+        self.vl.draw(pyglet.gl.GL_LINE_LOOP)
+        self.vl2.draw(pyglet.gl.GL_LINE_LOOP)
+
+        self.draw_forces()
+
+
 
 class Force(object):
 
@@ -467,8 +509,8 @@ class Pin(Constraint):
         self.p2 = sp.Matrix(p2)
 
         # Create friction forces for both rbs
-        rb1.forces.append(Friction(rb1, rb2))
-        rb2.forces.append(Friction(rb2, rb1))
+        #rb1.forces.append(Friction(rb1, rb2))
+        #rb2.forces.append(Friction(rb2, rb1))
 
         # Drawing Stuff
         cs = (0, 255, 0)
@@ -509,11 +551,33 @@ class Pin(Constraint):
 
 class Rolling(Constraint):
 
-    def __init__(self, rigid_body):
+    def __init__(self, rb):
 
-        super(Rolling, self).__init__([rigid_body], 2)
-        self.R = rigid_body.radius
+        super().__init__([rb], 2)
 
-    def equations(self, xs, ys, hs):
+        self.R = rb.radius
 
-        pass
+        # Drawing Stuff
+        cs = (0, 255, 0)
+        ps = (-5, -self.R,
+               5, -self.R)
+        N = len(ps)//2
+        self.vl = pyglet.graphics.vertex_list(N, ('v2f', ps), ('c3B', N*cs))
+
+    def draw(self):
+
+        gl.glLoadIdentity()
+        #gl.glTranslatef(p[0], p[1], 0)
+        self.vl.draw(pyglet.gl.GL_LINE_LOOP)
+
+
+    def equations2(self):
+
+        x = self.rigid_bodies[0].x
+        y = self.rigid_bodies[0].y
+        h = self.rigid_bodies[0].h
+
+        eq = [y, x + self.R*h]
+
+        return eq
+
